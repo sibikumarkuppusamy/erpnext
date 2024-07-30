@@ -53,9 +53,6 @@
   "pos_tab",
   "pos_setting_section",
   "post_change_gl_entries",
-  "assets_tab",
-  "asset_settings_section",
-  "book_asset_depreciation_entry_automatically",
   "closing_settings_tab",
   "period_closing_settings_section",
   "acc_frozen_upto",
@@ -129,12 +126,6 @@
    "fieldname": "unlink_advance_payment_on_cancelation_of_order",
    "fieldtype": "Check",
    "label": "Unlink Advance Payment on Cancellation of Order"
-  },
-  {
-   "default": "1",
-   "fieldname": "book_asset_depreciation_entry_automatically",
-   "fieldtype": "Check",
-   "label": "Book Asset Depreciation Entry Automatically"
   },
   {
    "default": "1",
@@ -297,19 +288,9 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "asset_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Asset Settings"
-  },
-  {
    "fieldname": "invoicing_settings_tab",
    "fieldtype": "Tab Break",
    "label": "Credit Limits"
-  },
-  {
-   "fieldname": "assets_tab",
-   "fieldtype": "Tab Break",
-   "label": "Assets"
   },
   {
    "fieldname": "closing_settings_tab",

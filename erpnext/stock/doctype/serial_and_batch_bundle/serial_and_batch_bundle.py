@@ -76,7 +76,7 @@ class SerialandBatchBundle(Document):
 		returned_against: DF.Data | None
 		total_amount: DF.Float
 		total_qty: DF.Float
-		type_of_transaction: DF.Literal["", "Inward", "Outward", "Maintenance", "Asset Repair"]
+		type_of_transaction: DF.Literal["", "Inward", "Outward", "Maintenance"]
 		voucher_detail_no: DF.Data | None
 		voucher_no: DF.DynamicLink | None
 		voucher_type: DF.Link
@@ -792,8 +792,6 @@ class SerialandBatchBundle(Document):
 			return
 
 		parent_child_map = {
-			"Asset Capitalization": "Asset Capitalization Stock Item",
-			"Asset Repair": "Asset Repair Consumed Item",
 			"Quotation": "Packed Item",
 			"Stock Entry": "Stock Entry Detail",
 		}

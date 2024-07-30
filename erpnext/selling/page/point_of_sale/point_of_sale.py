@@ -135,7 +135,6 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			item.disabled = 0
 			AND item.has_variants = 0
 			AND item.is_sales_item = 1
-			AND item.is_fixed_asset = 0
 			AND item.item_group in (SELECT name FROM `tabItem Group` WHERE lft >= {lft} AND rgt <= {rgt})
 			AND {condition}
 			{bin_join_condition}

@@ -157,7 +157,7 @@ class TestItem(FrappeTestCase):
 			self.assertEqual(value, details.get(key), key)
 
 	def test_get_asset_item_details(self):
-		from erpnext.assets.doctype.asset.test_asset import create_asset_category, create_fixed_asset_item
+		from asset.asset.doctype.asset.test_asset import create_asset_category, create_fixed_asset_item
 
 		create_asset_category(0)
 		create_fixed_asset_item()

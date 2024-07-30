@@ -559,27 +559,6 @@ frappe.help.help_links["List/Payment Entry"] = [
 	},
 ];
 
-frappe.help.help_links["List/Payment Request"] = [
-	{
-		label: "Payment Request",
-		url: docsUrl + "user/manual/en/payment-request",
-	},
-];
-
-frappe.help.help_links["List/Asset"] = [
-	{
-		label: "Managing Fixed Assets",
-		url: docsUrl + "user/manual/en/asset",
-	},
-];
-
-frappe.help.help_links["List/Asset Category"] = [
-	{
-		label: "Asset Category",
-		url: docsUrl + "user/manual/en/asset-category",
-	},
-];
-
 frappe.help.help_links["Tree/Cost Center"] = [
 	{ label: "Budgeting", url: docsUrl + "user/manual/en/budgeting" },
 ];
@@ -599,10 +578,6 @@ frappe.help.help_links["List/Item"] = [
 	{
 		label: "Item Wise Taxation",
 		url: docsUrl + "user/manual/en/item-tax-template",
-	},
-	{
-		label: "Managing Fixed Assets",
-		url: docsUrl + "user/manual/en/asset",
 	},
 	{
 		label: "Item Codification",
@@ -631,10 +606,6 @@ frappe.help.help_links["Form/Item"] = [
 	{
 		label: "Item Wise Taxation",
 		url: docsUrl + "user/manual/en/item-tax-template",
-	},
-	{
-		label: "Managing Fixed Assets",
-		url: docsUrl + "user/manual/en/asset",
 	},
 	{
 		label: "Item Codification",

@@ -107,12 +107,9 @@ class StockController(AccountsController):
 			)
 		)
 
-		is_asset_pr = any(d.get("is_fixed_asset") for d in self.get("items"))
-
 		if (
 			cint(erpnext.is_perpetual_inventory_enabled(self.company))
 			or provisional_accounting_for_non_stock_items
-			or is_asset_pr
 		):
 			warehouse_account = get_warehouse_account_map(self.company)
 
@@ -185,9 +182,6 @@ class StockController(AccountsController):
 
 		if not table_name:
 			table_name = "items"
-
-		if self.doctype == "Asset Capitalization":
-			table_name = "stock_items"
 
 		for row in self.get(table_name):
 			if row.serial_and_batch_bundle and (row.serial_no or row.batch_no):

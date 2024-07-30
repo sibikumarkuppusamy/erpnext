@@ -18,9 +18,9 @@ from erpnext.accounts.doctype.purchase_invoice.test_purchase_invoice import (
 )
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_inter_company_transaction
 from erpnext.accounts.utils import PaymentEntryUnlinkError
-from erpnext.assets.doctype.asset.depreciation import post_depreciation_entries
-from erpnext.assets.doctype.asset.test_asset import create_asset, create_asset_data
-from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
+from asset.asset.doctype.asset.depreciation import post_depreciation_entries
+from asset.asset.doctype.asset.test_asset import create_asset, create_asset_data
+from asset.asset.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
 	get_depr_schedule,
 )
 from erpnext.controllers.accounts_controller import InvalidQtyError, update_invoice_status

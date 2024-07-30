@@ -1,6 +1,6 @@
 import frappe
 
-from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
+from asset.asset.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
 	get_depr_schedule,
 )
 
