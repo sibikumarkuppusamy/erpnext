@@ -2200,14 +2200,7 @@ class TestPurchaseInvoice(FrappeTestCase, StockTestMixin):
 				self.assertEqual(row.rejected_serial_no, serial_nos[2])
 
 	def test_make_pr_and_pi_from_po(self):
-		from asset.asset.doctype.asset.test_asset import create_asset_category
-
-		if not frappe.db.exists("Asset Category", "Computers"):
-			create_asset_category()
-
-		item = create_item(
-			item_code="_Test_Item", is_stock_item=0, is_fixed_asset=1, asset_category="Computers"
-		)
+		item = create_item(item_code="_Test_Item", is_stock_item=0)
 		po = create_purchase_order(item_code=item.item_code)
 		pr = create_pr_against_po(po.name, 10)
 		pi = make_pi_from_po(po.name)
@@ -2223,7 +2216,7 @@ class TestPurchaseInvoice(FrappeTestCase, StockTestMixin):
 		)
 
 		pr_expected_values = [
-			["Asset Received But Not Billed - _TC", 0, 5000],
+			["Cost of Goods Sold - _TC", 0, 5000],
 			["CWIP Account - _TC", 5000, 0],
 		]
 
@@ -2240,7 +2233,7 @@ class TestPurchaseInvoice(FrappeTestCase, StockTestMixin):
 			as_dict=1,
 		)
 		pi_expected_values = [
-			["Asset Received But Not Billed - _TC", 5000, 0],
+			["Cost of Goods Sold - _TC", 5000, 0],
 			["Creditors - _TC", 0, 5000],
 		]
 
@@ -2401,7 +2394,6 @@ def make_purchase_invoice(**args):
 			"cost_center": args.cost_center or "_Test Cost Center - _TC",
 			"project": args.project,
 			"rejected_warehouse": args.rejected_warehouse or "",
-			"asset_location": args.location or "",
 			"allow_zero_valuation_rate": args.get("allow_zero_valuation_rate") or 0,
 			"use_serial_batch_fields": args.get("use_serial_batch_fields") or 0,
 			"batch_no": args.get("batch_no") if args.get("use_serial_batch_fields") else "",

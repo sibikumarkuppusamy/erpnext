@@ -96,7 +96,7 @@ def validate_accounting_period_on_doc_save(doc, method=None):
 		return
 	else:
 		date = doc.posting_date
-	
+
 	validate_accounting_period(doc, date)
 
 
