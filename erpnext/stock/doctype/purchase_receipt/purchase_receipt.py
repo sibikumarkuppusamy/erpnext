@@ -636,18 +636,12 @@ class PurchaseReceipt(BuyingController):
 					d, gl_entries, self.posting_date, d.get("provisional_expense_account")
 				)
 			elif flt(d.qty) and (flt(d.valuation_rate) or self.is_return):
-				remarks = self.get("remarks") or _("Accounting Entry for {0}").format(
-					"Stock"
-				)
+				remarks = self.get("remarks") or _("Accounting Entry for {0}").format("Stock")
 
-				if not (
-					(erpnext.is_perpetual_inventory_enabled(self.company) and d.item_code in stock_items)
-				):
+				if not (erpnext.is_perpetual_inventory_enabled(self.company) and d.item_code in stock_items):
 					continue
 
-				stock_asset_rbnb = (
-					self.get_company_default("stock_received_but_not_billed")
-				)
+				stock_asset_rbnb = self.get_company_default("stock_received_but_not_billed")
 				landed_cost_entries = get_item_account_wise_additional_cost(self.name)
 				if warehouse_account.get(d.warehouse):
 					stock_value_diff = get_stock_value_difference(self.name, d.name, d.warehouse)

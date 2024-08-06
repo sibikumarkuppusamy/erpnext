@@ -28,7 +28,6 @@ from erpnext.accounts.utils import (
 	get_stock_accounts,
 	get_stock_and_account_balance,
 )
-
 from erpnext.controllers.accounts_controller import AccountsController
 
 

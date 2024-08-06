@@ -283,9 +283,6 @@ def get_pr_items(purchase_receipt):
 			ConstantColumn(purchase_receipt.receipt_document_type).as_("receipt_document_type"),
 			ConstantColumn(purchase_receipt.receipt_document).as_("receipt_document"),
 		)
-		.where(
-			(pr_item.parent == purchase_receipt.receipt_document)
-			& ((item.is_stock_item == 1))
-		)
+		.where((pr_item.parent == purchase_receipt.receipt_document) & (item.is_stock_item == 1))
 		.run(as_dict=True)
 	)

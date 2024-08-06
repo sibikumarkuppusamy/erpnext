@@ -913,11 +913,7 @@ class PurchaseInvoice(BuyingController):
 		for item in self.get("items"):
 			if flt(item.base_net_amount):
 				account_currency = get_account_currency(item.expense_account)
-				if (
-					self.update_stock
-					and self.auto_accounting_for_stock
-					and (item.item_code in stock_items)
-				):
+				if self.update_stock and self.auto_accounting_for_stock and (item.item_code in stock_items):
 					# warehouse account
 					warehouse_debit_amount = self.make_stock_adjustment_entry(
 						gl_entries, item, voucher_wise_stock_value, account_currency
@@ -1112,9 +1108,7 @@ class PurchaseInvoice(BuyingController):
 						(item.purchase_receipt, valuation_tax_accounts),
 					)
 
-					(
-						self.stock_received_but_not_billed
-					)
+					(self.stock_received_but_not_billed)
 
 					if not negative_expense_booked_in_pr:
 						gl_entries.append(
