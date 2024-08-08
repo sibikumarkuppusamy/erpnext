@@ -61,7 +61,7 @@ def get_item_details(args, doc=None, for_validate=False, overwrite_warehouse=Tru
 	args = process_args(args)
 	item = frappe.get_cached_doc("Item", args.item_code)
 	out = get_basic_details(args, item, overwrite_warehouse)
-	return _get_item_details(args, out, doc=None, for_validate=False, overwrite_warehouse=True)
+	return _get_item_details(args, out, doc, for_validate, overwrite_warehouse)
 
 
 def _get_item_details(args, out, doc=None, for_validate=False, overwrite_warehouse=True):
