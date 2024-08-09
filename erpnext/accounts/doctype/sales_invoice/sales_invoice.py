@@ -30,14 +30,6 @@ from erpnext.accounts.doctype.tax_withholding_category.tax_withholding_category 
 from erpnext.accounts.general_ledger import get_round_off_account_and_cost_center
 from erpnext.accounts.party import get_due_date, get_party_account, get_party_details
 from erpnext.accounts.utils import cancel_exchange_gain_loss_journal, get_account_currency
-from erpnext.assets.doctype.asset.depreciation import (
-	depreciate_asset,
-	get_gl_entries_on_asset_disposal,
-	get_gl_entries_on_asset_regain,
-	reset_depreciation_schedule,
-	reverse_depreciation_entry_made_after_disposal,
-)
-from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.controllers.accounts_controller import validate_account_head
 from erpnext.controllers.selling_controller import SellingController
 from erpnext.projects.doctype.timesheet.timesheet import get_projectwise_timesheet_data
@@ -285,8 +277,6 @@ class SalesInvoice(SellingController):
 		self.validate_debit_to_acc()
 		self.clear_unallocated_advances("Sales Invoice Advance", "advances")
 		self.add_remarks()
-		self.validate_fixed_asset()
-		self.set_income_account_for_fixed_assets()
 		self.validate_item_cost_centers()
 		self.check_conversion_rate()
 		self.validate_accounts()
@@ -366,23 +356,6 @@ class SalesInvoice(SellingController):
 		self.validate_income_account()
 		validate_docs_for_voucher_types(["Sales Invoice"])
 		validate_docs_for_deferred_accounting([self.name], [])
-
-	def validate_fixed_asset(self):
-		for d in self.get("items"):
-			if d.is_fixed_asset and d.meta.get_field("asset") and d.asset:
-				asset = frappe.get_doc("Asset", d.asset)
-				if self.doctype == "Sales Invoice" and self.docstatus == 1:
-					if self.update_stock:
-						frappe.throw(_("'Update Stock' cannot be checked for fixed asset sale"))
-
-					elif asset.status in ("Scrapped", "Cancelled", "Capitalized", "Decapitalized") or (
-						asset.status == "Sold" and not self.is_return
-					):
-						frappe.throw(
-							_("Row #{0}: Asset {1} cannot be submitted, it is already {2}").format(
-								d.idx, d.asset, asset.status
-							)
-						)
 
 	def validate_item_cost_centers(self):
 		for item in self.items:
@@ -1144,10 +1117,6 @@ class SalesInvoice(SellingController):
 
 		return warehouse
 
-	def set_income_account_for_fixed_assets(self):
-		for item in self.items:
-			item.set_income_account_for_fixed_asset(self.company)
-
 	def check_prev_docstatus(self):
 		for d in self.get("items"):
 			if (
@@ -1323,111 +1292,39 @@ class SalesInvoice(SellingController):
 
 		for item in self.get("items"):
 			if flt(item.base_net_amount, item.precision("base_net_amount")):
-				if item.is_fixed_asset:
-					asset = self.get_asset(item)
+				# Do not book income for transfer within same company
+				if not self.is_internal_transfer():
+					income_account = (
+						item.income_account
+						if (not item.enable_deferred_revenue or self.is_return)
+						else item.deferred_revenue_account
+					)
 
-					if self.is_return:
-						fixed_asset_gl_entries = get_gl_entries_on_asset_regain(
-							asset,
-							item.base_net_amount,
-							item.finance_book,
-							self.get("doctype"),
-							self.get("name"),
-							self.get("posting_date"),
+					amount, base_amount = self.get_amount_and_base_amount(item, enable_discount_accounting)
+
+					account_currency = get_account_currency(income_account)
+					gl_entries.append(
+						self.get_gl_dict(
+							{
+								"account": income_account,
+								"against": self.customer,
+								"credit": flt(base_amount, item.precision("base_net_amount")),
+								"credit_in_account_currency": (
+									flt(base_amount, item.precision("base_net_amount"))
+									if account_currency == self.company_currency
+									else flt(amount, item.precision("net_amount"))
+								),
+								"cost_center": item.cost_center,
+								"project": item.project or self.project,
+							},
+							account_currency,
+							item=item,
 						)
-						asset.db_set("disposal_date", None)
-						add_asset_activity(asset.name, _("Asset returned"))
-
-						if asset.calculate_depreciation:
-							posting_date = frappe.db.get_value(
-								"Sales Invoice", self.return_against, "posting_date"
-							)
-							reverse_depreciation_entry_made_after_disposal(asset, posting_date)
-							notes = _(
-								"This schedule was created when Asset {0} was returned through Sales Invoice {1}."
-							).format(
-								get_link_to_form(asset.doctype, asset.name),
-								get_link_to_form(self.doctype, self.get("name")),
-							)
-							reset_depreciation_schedule(asset, self.posting_date, notes)
-							asset.reload()
-
-					else:
-						if asset.calculate_depreciation:
-							notes = _(
-								"This schedule was created when Asset {0} was sold through Sales Invoice {1}."
-							).format(
-								get_link_to_form(asset.doctype, asset.name),
-								get_link_to_form(self.doctype, self.get("name")),
-							)
-							depreciate_asset(asset, self.posting_date, notes)
-							asset.reload()
-
-						fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(
-							asset,
-							item.base_net_amount,
-							item.finance_book,
-							self.get("doctype"),
-							self.get("name"),
-							self.get("posting_date"),
-						)
-						asset.db_set("disposal_date", self.posting_date)
-						add_asset_activity(asset.name, _("Asset sold"))
-
-					for gle in fixed_asset_gl_entries:
-						gle["against"] = self.customer
-						gl_entries.append(self.get_gl_dict(gle, item=item))
-
-					self.set_asset_status(asset)
-
-				else:
-					# Do not book income for transfer within same company
-					if not self.is_internal_transfer():
-						income_account = (
-							item.income_account
-							if (not item.enable_deferred_revenue or self.is_return)
-							else item.deferred_revenue_account
-						)
-
-						amount, base_amount = self.get_amount_and_base_amount(
-							item, enable_discount_accounting
-						)
-
-						account_currency = get_account_currency(income_account)
-						gl_entries.append(
-							self.get_gl_dict(
-								{
-									"account": income_account,
-									"against": self.customer,
-									"credit": flt(base_amount, item.precision("base_net_amount")),
-									"credit_in_account_currency": (
-										flt(base_amount, item.precision("base_net_amount"))
-										if account_currency == self.company_currency
-										else flt(amount, item.precision("net_amount"))
-									),
-									"cost_center": item.cost_center,
-									"project": item.project or self.project,
-								},
-								account_currency,
-								item=item,
-							)
-						)
+					)
 
 		# expense account gl entries
 		if cint(self.update_stock) and erpnext.is_perpetual_inventory_enabled(self.company):
 			gl_entries += super().get_gl_entries()
-
-	def get_asset(self, item):
-		if item.get("asset"):
-			asset = frappe.get_doc("Asset", item.asset)
-		else:
-			frappe.throw(
-				_("Row #{0}: You must select an Asset for Item {1}.").format(item.idx, item.item_name),
-				title=_("Missing Asset"),
-			)
-
-		self.check_finance_books(item, asset)
-		return asset
 
 	@property
 	def enable_discount_accounting(self):
@@ -1437,12 +1334,6 @@ class SalesInvoice(SellingController):
 			)
 
 		return self._enable_discount_accounting
-
-	def set_asset_status(self, asset):
-		if self.is_return:
-			asset.set_status()
-		else:
-			asset.set_status("Sold" if self.docstatus == 1 else None)
 
 	def make_loyalty_point_redemption_gle(self, gl_entries):
 		if cint(self.redeem_loyalty_points):

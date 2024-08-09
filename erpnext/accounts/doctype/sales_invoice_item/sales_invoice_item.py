@@ -7,7 +7,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.data import cint
 
-from erpnext.assets.doctype.asset.depreciation import get_disposal_account_and_cost_center
 from erpnext.stock.doctype.serial_no.serial_no import get_delivery_note_serial_no, get_serial_nos
 
 
@@ -24,7 +23,6 @@ class SalesInvoiceItem(Document):
 		actual_qty: DF.Float
 		allow_zero_valuation_rate: DF.Check
 		amount: DF.Currency
-		asset: DF.Link | None
 		barcode: DF.Data | None
 		base_amount: DF.Currency
 		base_net_amount: DF.Currency
@@ -48,13 +46,11 @@ class SalesInvoiceItem(Document):
 		dn_detail: DF.Data | None
 		enable_deferred_revenue: DF.Check
 		expense_account: DF.Link | None
-		finance_book: DF.Link | None
 		grant_commission: DF.Check
 		has_item_scanned: DF.Check
 		image: DF.Attach | None
 		income_account: DF.Link
 		incoming_rate: DF.Currency
-		is_fixed_asset: DF.Check
 		is_free_item: DF.Check
 		item_code: DF.Link | None
 		item_group: DF.Link | None
@@ -115,17 +111,6 @@ class SalesInvoiceItem(Document):
 				)
 				or 0
 			)
-
-	def set_income_account_for_fixed_asset(self, company: str):
-		"""Set income account for fixed asset item based on company's disposal account and cost center."""
-		if not self.is_fixed_asset:
-			return
-
-		disposal_account, depreciation_cost_center = get_disposal_account_and_cost_center(company)
-
-		self.income_account = disposal_account
-		if not self.cost_center:
-			self.cost_center = depreciation_cost_center
 
 	def set_serial_no_against_delivery_note(self):
 		"""Set serial no based on delivery note."""

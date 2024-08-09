@@ -84,7 +84,6 @@ force_item_fields = (
 	"item_group",
 	"brand",
 	"stock_uom",
-	"is_fixed_asset",
 	"item_tax_rate",
 	"pricing_rules",
 	"weight_per_unit",
@@ -235,7 +234,7 @@ class AccountsController(TransactionBase):
 							frappe.bold(document_type),
 							get_link_to_form(self.doctype, self.get("return_against")),
 							frappe.bold("Update Outstanding for Self"),
-							get_link_to_form("Payment Reconciliation"),
+							frappe.bold("Payment Reconciliation"),
 						)
 					)
 
@@ -780,11 +779,6 @@ class AccountsController(TransactionBase):
 
 							elif fieldname == "expense_account" and not item.get("expense_account"):
 								item.expense_account = value
-
-					if self.doctype in ["Purchase Invoice", "Sales Invoice"] and item.meta.get_field(
-						"is_fixed_asset"
-					):
-						item.set("is_fixed_asset", ret.get("is_fixed_asset", 0))
 
 					# Double check for cost center
 					# Items add via promotional scheme may not have cost center set

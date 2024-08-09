@@ -767,89 +767,6 @@ class TestPurchaseReceipt(FrappeTestCase):
 
 		new_pr_doc.cancel()
 
-	def test_auto_asset_creation(self):
-		asset_item = "Test Asset Item"
-
-		if not frappe.db.exists("Item", asset_item):
-			asset_category = frappe.get_all("Asset Category")
-
-			if asset_category:
-				asset_category = asset_category[0].name
-
-			if not asset_category:
-				doc = frappe.get_doc(
-					{
-						"doctype": "Asset Category",
-						"asset_category_name": "Test Asset Category",
-						"depreciation_method": "Straight Line",
-						"total_number_of_depreciations": 12,
-						"frequency_of_depreciation": 1,
-						"accounts": [
-							{
-								"company_name": "_Test Company",
-								"fixed_asset_account": "_Test Fixed Asset - _TC",
-								"accumulated_depreciation_account": "_Test Accumulated Depreciations - _TC",
-								"depreciation_expense_account": "_Test Depreciations - _TC",
-							}
-						],
-					}
-				).insert()
-
-				asset_category = doc.name
-
-			item_data = make_item(
-				asset_item,
-				{
-					"is_stock_item": 0,
-					"stock_uom": "Box",
-					"is_fixed_asset": 1,
-					"auto_create_assets": 1,
-					"asset_category": asset_category,
-					"asset_naming_series": "ABC.###",
-				},
-			)
-			asset_item = item_data.item_code
-
-		pr = make_purchase_receipt(item_code=asset_item, qty=3)
-		assets = frappe.db.get_all("Asset", filters={"purchase_receipt": pr.name})
-
-		self.assertEqual(len(assets), 3)
-
-		location = frappe.db.get_value("Asset", assets[0].name, "location")
-		self.assertEqual(location, "Test Location")
-
-		pr.cancel()
-
-	def test_purchase_return_with_submitted_asset(self):
-		from erpnext.stock.doctype.purchase_receipt.purchase_receipt import make_purchase_return
-
-		pr = make_purchase_receipt(item_code="Test Asset Item", qty=1)
-
-		asset = frappe.get_doc("Asset", {"purchase_receipt": pr.name})
-		asset.available_for_use_date = frappe.utils.nowdate()
-		asset.gross_purchase_amount = 50.0
-		asset.append(
-			"finance_books",
-			{
-				"expected_value_after_useful_life": 10,
-				"depreciation_method": "Straight Line",
-				"total_number_of_depreciations": 3,
-				"frequency_of_depreciation": 1,
-			},
-		)
-		asset.submit()
-
-		pr_return = make_purchase_return(pr.name)
-		self.assertRaises(frappe.exceptions.ValidationError, pr_return.submit)
-
-		asset.load_from_db()
-		asset.cancel()
-
-		pr_return.submit()
-
-		pr_return.cancel()
-		pr.cancel()
-
 	def test_purchase_receipt_cost_center(self):
 		from erpnext.accounts.doctype.cost_center.test_cost_center import create_cost_center
 
@@ -858,9 +775,6 @@ class TestPurchaseReceipt(FrappeTestCase):
 			cost_center_name="_Test Cost Center for BS Account",
 			company="_Test Company with perpetual inventory",
 		)
-
-		if not frappe.db.exists("Location", "Test Location"):
-			frappe.get_doc({"doctype": "Location", "location_name": "Test Location"}).insert()
 
 		pr = make_purchase_receipt(
 			cost_center=cost_center,
@@ -884,9 +798,6 @@ class TestPurchaseReceipt(FrappeTestCase):
 		pr.cancel()
 
 	def test_purchase_receipt_cost_center_with_balance_sheet_account(self):
-		if not frappe.db.exists("Location", "Test Location"):
-			frappe.get_doc({"doctype": "Location", "location_name": "Test Location"}).insert()
-
 		pr = make_purchase_receipt(
 			company="_Test Company with perpetual inventory",
 			warehouse="Stores - TCP1",
@@ -3540,9 +3451,6 @@ def get_items(**args):
 
 
 def make_purchase_receipt(**args):
-	if not frappe.db.exists("Location", "Test Location"):
-		frappe.get_doc({"doctype": "Location", "location_name": "Test Location"}).insert()
-
 	frappe.db.set_single_value("Buying Settings", "allow_multiple_items", 1)
 	pr = frappe.new_doc("Purchase Receipt")
 	args = frappe._dict(args)
@@ -3609,7 +3517,6 @@ def make_purchase_receipt(**args):
 			"stock_uom": args.stock_uom or "_Test UOM",
 			"uom": uom,
 			"cost_center": args.cost_center or frappe.get_cached_value("Company", pr.company, "cost_center"),
-			"asset_location": args.location or "Test Location",
 			"use_serial_batch_fields": args.use_serial_batch_fields or 0,
 			"serial_no": args.serial_no if args.use_serial_batch_fields else "",
 			"batch_no": args.batch_no if args.use_serial_batch_fields else "",
@@ -3638,5 +3545,5 @@ def make_purchase_receipt(**args):
 	return pr
 
 
-test_dependencies = ["BOM", "Item Price", "Location"]
+test_dependencies = ["BOM", "Item Price"]
 test_records = frappe.get_test_records("Purchase Receipt")

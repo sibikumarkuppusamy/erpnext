@@ -156,33 +156,6 @@ class TestItem(FrappeTestCase):
 		for key, value in to_check.items():
 			self.assertEqual(value, details.get(key), key)
 
-	def test_get_asset_item_details(self):
-		from erpnext.assets.doctype.asset.test_asset import create_asset_category, create_fixed_asset_item
-
-		create_asset_category(0)
-		create_fixed_asset_item()
-
-		details = get_item_details(
-			{
-				"item_code": "Macbook Pro",
-				"company": "_Test Company",
-				"currency": "INR",
-				"doctype": "Purchase Receipt",
-			}
-		)
-		self.assertEqual(details.get("expense_account"), "_Test Fixed Asset - _TC")
-
-		frappe.db.set_value("Asset Category", "Computers", "enable_cwip_accounting", "1")
-		details = get_item_details(
-			{
-				"item_code": "Macbook Pro",
-				"company": "_Test Company",
-				"currency": "INR",
-				"doctype": "Purchase Receipt",
-			}
-		)
-		self.assertEqual(details.get("expense_account"), "CWIP Account - _TC")
-
 	def test_item_tax_template(self):
 		expected_item_tax_template = [
 			{
@@ -938,8 +911,6 @@ def create_item(
 	customer=None,
 	is_purchase_item=None,
 	opening_stock=0,
-	is_fixed_asset=0,
-	asset_category=None,
 	buying_cost_center=None,
 	selling_cost_center=None,
 	company="_Test Company",
@@ -952,8 +923,6 @@ def create_item(
 		item.item_group = "All Item Groups"
 		item.stock_uom = stock_uom
 		item.is_stock_item = is_stock_item
-		item.is_fixed_asset = is_fixed_asset
-		item.asset_category = asset_category
 		item.opening_stock = opening_stock
 		item.valuation_rate = valuation_rate
 		item.is_purchase_item = is_purchase_item

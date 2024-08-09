@@ -59,6 +59,12 @@ def get_item_details(args, doc=None, for_validate=False, overwrite_warehouse=Tru
 	"""
 
 	args = process_args(args)
+	item = frappe.get_cached_doc("Item", args.item_code)
+	out = get_basic_details(args, item, overwrite_warehouse)
+	return _get_item_details(args, out, doc, for_validate, overwrite_warehouse)
+
+
+def _get_item_details(args, out, doc=None, for_validate=False, overwrite_warehouse=True):
 	for_validate = process_string_args(for_validate)
 	overwrite_warehouse = process_string_args(overwrite_warehouse)
 	item = frappe.get_cached_doc("Item", args.item_code)
@@ -73,7 +79,6 @@ def get_item_details(args, doc=None, for_validate=False, overwrite_warehouse=Tru
 		if doc.get("doctype") == "Purchase Invoice":
 			args["bill_date"] = doc.get("bill_date")
 
-	out = get_basic_details(args, item, overwrite_warehouse)
 	get_item_tax_template(args, item, out)
 	out["item_tax_rate"] = get_item_tax_map(
 		args.company,
@@ -292,27 +297,6 @@ def get_basic_details(args, item, overwrite_warehouse=True):
 
 	expense_account = None
 
-	if item.is_fixed_asset:
-		from erpnext.assets.doctype.asset.asset import get_asset_account, is_cwip_accounting_enabled
-
-		if is_cwip_accounting_enabled(item.asset_category):
-			expense_account = get_asset_account(
-				"capital_work_in_progress_account",
-				asset_category=item.asset_category,
-				company=args.company,
-			)
-		elif args.get("doctype") in (
-			"Purchase Invoice",
-			"Purchase Receipt",
-			"Purchase Order",
-			"Material Request",
-		):
-			from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
-
-			expense_account = get_asset_category_account(
-				fieldname="fixed_asset_account", item=args.item_code, company=args.company
-			)
-
 	# Set the UOM to the Default Sales UOM or Default Purchase UOM if configured in the Item Master
 	if not args.get("uom"):
 		if args.get("doctype") in sales_doctypes:
@@ -373,7 +357,6 @@ def get_basic_details(args, item, overwrite_warehouse=True):
 			"delivered_by_supplier": item.delivered_by_supplier
 			if args.get("doctype") in ["Sales Order", "Sales Invoice"]
 			else 0,
-			"is_fixed_asset": item.is_fixed_asset,
 			"last_purchase_rate": item.last_purchase_rate if args.get("doctype") in ["Purchase Order"] else 0,
 			"transaction_date": args.get("transaction_date"),
 			"against_blanket_order": args.get("against_blanket_order"),
