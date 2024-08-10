@@ -43,7 +43,6 @@ class SerialNo(StockController):
 		item_code: DF.Link
 		item_group: DF.Link | None
 		item_name: DF.Data | None
-		location: DF.Link | None
 		maintenance_status: DF.Literal["", "Under Warranty", "Out of Warranty", "Under AMC", "Out of AMC"]
 		purchase_document_no: DF.Data | None
 		purchase_rate: DF.Float

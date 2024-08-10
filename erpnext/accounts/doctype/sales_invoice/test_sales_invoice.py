@@ -2243,7 +2243,7 @@ class TestSalesInvoice(FrappeTestCase):
 			)
 
 		si.cost_center = "_Test Cost Center 2 - _TC"
-		si.location = "Block 1"
+		si.territory = "_Test Territory"
 
 		si.save()
 		si.submit()
@@ -2286,13 +2286,13 @@ class TestSalesInvoice(FrappeTestCase):
 		round_off_gle = frappe.db.get_value(
 			"GL Entry",
 			{"voucher_type": "Sales Invoice", "voucher_no": si.name, "account": "Round Off - _TC"},
-			["cost_center", "location"],
+			["cost_center", "territory"],
 			as_dict=1,
 		)
 
 		if round_off_gle:
 			self.assertEqual(round_off_gle.cost_center, "_Test Cost Center 2 - _TC")
-			self.assertEqual(round_off_gle.location, "Block 1")
+			self.assertEqual(round_off_gle.territory, "_Test Territory")
 
 		disable_dimension()
 

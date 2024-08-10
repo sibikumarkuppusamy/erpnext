@@ -149,10 +149,10 @@ class TestPOSClosingEntry(unittest.TestCase):
 
 		create_dimension()
 		pos_profile = make_pos_profile(do_not_insert=1, do_not_set_accounting_dimension=1)
-
+		pos_profile.territory = ""
 		self.assertRaises(frappe.ValidationError, pos_profile.insert)
 
-		pos_profile.location = "Block 1"
+		pos_profile.territory = "_Test Territory"
 		pos_profile.insert()
 		self.assertTrue(frappe.db.exists("POS Profile", pos_profile.name))
 

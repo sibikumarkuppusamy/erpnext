@@ -8,7 +8,7 @@ import frappe
 from erpnext.accounts.doctype.journal_entry.test_journal_entry import make_journal_entry
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 
-test_dependencies = ["Cost Center", "Location", "Warehouse", "Department"]
+test_dependencies = ["Cost Center", "Territory", "Warehouse", "Department"]
 
 
 class TestAccountingDimension(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestAccountingDimension(unittest.TestCase):
 	def test_dimension_against_sales_invoice(self):
 		si = create_sales_invoice(do_not_save=1)
 
-		si.location = "Block 1"
+		si.territory = "_Test Territory"
 		si.append(
 			"items",
 			{
@@ -30,7 +30,7 @@ class TestAccountingDimension(unittest.TestCase):
 				"expense_account": "Cost of Goods Sold - _TC",
 				"cost_center": "_Test Cost Center - _TC",
 				"department": "_Test Department - _TC",
-				"location": "Block 1",
+				"territory": "_Test Territory",
 			},
 		)
 
@@ -46,8 +46,8 @@ class TestAccountingDimension(unittest.TestCase):
 		je.accounts[0].update({"department": "_Test Department - _TC"})
 		je.accounts[1].update({"department": "_Test Department - _TC"})
 
-		je.accounts[0].update({"location": "Block 1"})
-		je.accounts[1].update({"location": "Block 1"})
+		je.accounts[0].update({"territory": "_Test Territory"})
+		je.accounts[1].update({"territory": "_Test Territory"})
 
 		je.save()
 		je.submit()
@@ -69,10 +69,12 @@ class TestAccountingDimension(unittest.TestCase):
 				"income_account": "Sales - _TC",
 				"expense_account": "Cost of Goods Sold - _TC",
 				"cost_center": "_Test Cost Center - _TC",
-				"location": "",
+				"territory": "",
 			},
 		)
-
+		si.territory = ""
+		si.items[0].update({"territory": ""})
+		si.items[1].update({"territory": ""})
 		si.save()
 		self.assertRaises(frappe.ValidationError, si.submit)
 
@@ -107,11 +109,11 @@ def create_dimension():
 		dimension.disabled = 0
 		dimension.save()
 
-	if not frappe.db.exists("Accounting Dimension", {"document_type": "Location"}):
+	if not frappe.db.exists("Accounting Dimension", {"document_type": "Territory"}):
 		dimension1 = frappe.get_doc(
 			{
 				"doctype": "Accounting Dimension",
-				"document_type": "Location",
+				"document_type": "Territory",
 			}
 		)
 
@@ -119,8 +121,8 @@ def create_dimension():
 			"dimension_defaults",
 			{
 				"company": "_Test Company",
-				"reference_document": "Location",
-				"default_dimension": "Block 1",
+				"reference_document": "Territory",
+				"default_dimension": "_Test Territory",
 				"mandatory_for_bs": 1,
 			},
 		)
@@ -128,7 +130,7 @@ def create_dimension():
 		dimension1.insert()
 		dimension1.save()
 	else:
-		dimension1 = frappe.get_doc("Accounting Dimension", "Location")
+		dimension1 = frappe.get_doc("Accounting Dimension", "Territory")
 		dimension1.disabled = 0
 		dimension1.save()
 
@@ -138,6 +140,6 @@ def disable_dimension():
 	dimension1.disabled = 1
 	dimension1.save()
 
-	dimension2 = frappe.get_doc("Accounting Dimension", "Location")
+	dimension2 = frappe.get_doc("Accounting Dimension", "Territory")
 	dimension2.disabled = 1
 	dimension2.save()
