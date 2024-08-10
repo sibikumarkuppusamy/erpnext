@@ -22,7 +22,6 @@
   "item_group",
   "brand",
   "column_break_24",
-  "location",
   "employee",
   "warranty_amc_details",
   "column_break6",
@@ -111,13 +110,6 @@
   {
    "fieldname": "column_break_24",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "location",
-   "fieldtype": "Link",
-   "label": "Location",
-   "options": "Location",
-   "read_only": 1
   },
   {
    "fieldname": "employee",

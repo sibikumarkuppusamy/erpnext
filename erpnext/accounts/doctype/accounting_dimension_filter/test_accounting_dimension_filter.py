@@ -12,7 +12,7 @@ from erpnext.accounts.doctype.accounting_dimension.test_accounting_dimension imp
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 from erpnext.exceptions import InvalidAccountDimensionError, MandatoryAccountDimensionError
 
-test_dependencies = ["Location", "Cost Center", "Department"]
+test_dependencies = ["Territory", "Cost Center", "Department"]
 
 
 class TestAccountingDimensionFilter(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestAccountingDimensionFilter(unittest.TestCase):
 		si = create_sales_invoice(do_not_save=1)
 		si.items[0].cost_center = "Main - _TC"
 		si.department = "Accounts - _TC"
-		si.location = "Block 1"
+		si.territory = "_Test Territory"
 		si.save()
 
 		self.assertRaises(InvalidAccountDimensionError, si.submit)
@@ -34,7 +34,7 @@ class TestAccountingDimensionFilter(unittest.TestCase):
 	def test_mandatory_dimension_validation(self):
 		si = create_sales_invoice(do_not_save=1)
 		si.department = ""
-		si.location = "Block 1"
+		si.territory = "_Test Territory"
 
 		# Test with no department for Sales Account
 		si.items[0].department = ""
